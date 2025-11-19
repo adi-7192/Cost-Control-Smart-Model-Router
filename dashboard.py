@@ -187,6 +187,74 @@ if submit_button and prompt_input:
             # Reasoning
             st.info(f"**🧠 Routing Reasoning:** {result['reasoning']}")
             
+            # Cost Savings Comparison
+            st.markdown("### 💰 Cost Savings Analysis")
+            
+            savings = result.get('savings', 0)
+            cost_without = result.get('cost_without_routing', 0)
+            savings_pct = result.get('savings_percentage', 0)
+            
+            # Create comparison card
+            if savings > 0:
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                            padding: 20px; border-radius: 10px; color: white; margin: 10px 0;">
+                    <h4 style="color: white; margin: 0 0 15px 0;">💚 Smart Routing Savings</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 0.9em; opacity: 0.9;">Smart Routing</div>
+                            <div style="font-size: 1.5em; font-weight: bold;">${result['cost']:.6f}</div>
+                            <div style="font-size: 0.8em; opacity: 0.8;">✓ {result['model']}</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 0.9em; opacity: 0.9;">Without Routing</div>
+                            <div style="font-size: 1.5em; font-weight: bold;">${cost_without:.6f}</div>
+                            <div style="font-size: 0.8em; opacity: 0.8;">✗ GPT-4o only</div>
+                        </div>
+                        <div style="background: rgba(76, 175, 80, 0.3); padding: 15px; border-radius: 8px; border: 2px solid #4CAF50;">
+                            <div style="font-size: 0.9em; opacity: 0.9;">You Saved</div>
+                            <div style="font-size: 1.5em; font-weight: bold;">${savings:.6f}</div>
+                            <div style="font-size: 0.8em; opacity: 0.8;">🎉 {savings_pct:.1f}% cheaper!</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Calculate projections for 1000 requests/day
+                daily_savings = savings * 1000
+                monthly_savings = daily_savings * 30
+                yearly_savings = daily_savings * 365
+                
+                # Show projection
+                st.markdown(f"""
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; 
+                            padding: 15px; border-radius: 5px; margin: 10px 0;">
+                    <h4 style="margin: 0 0 10px 0;">📊 The Big Picture: Scale Projection</h4>
+                    <p style="margin: 5px 0; font-size: 0.95em;">
+                        <strong>If you made 1,000 requests like this every day:</strong>
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div>
+                            <div style="font-size: 0.85em; opacity: 0.8;">Daily Savings</div>
+                            <div style="font-size: 1.3em; font-weight: bold; color: #4CAF50;">${daily_savings:.2f}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.85em; opacity: 0.8;">Monthly Savings</div>
+                            <div style="font-size: 1.3em; font-weight: bold; color: #4CAF50;">${monthly_savings:.2f}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.85em; opacity: 0.8;">Yearly Savings</div>
+                            <div style="font-size: 1.3em; font-weight: bold; color: #4CAF50;">${yearly_savings:,.2f}</div>
+                        </div>
+                    </div>
+                    <p style="margin: 15px 0 0 0; font-size: 0.9em; opacity: 0.9;">
+                        💡 <em>At scale, smart routing could save you <strong>${yearly_savings:,.2f}/year</strong> compared to using GPT-4o for everything!</em>
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.info("💡 This query used the most powerful model (GPT-4o) for best quality.")
+            
         else:
             st.error(f"❌ Error: {response.status_code} - {response.text}")
             st.warning("Make sure the backend server is running: `uvicorn app.main:app --reload`")
@@ -233,19 +301,30 @@ else:
     
     df = pd.DataFrame(data)
     
+    # Calculate cumulative savings
+    # Estimate what GPT-4o would have cost for all requests
+    total_tokens = df['Tokens'].sum()
+    gpt4o_total_cost = (total_tokens / 1000) * 0.03
+    actual_total_cost = df['Cost ($)'].sum()
+    total_savings = gpt4o_total_cost - actual_total_cost
+    savings_pct = (total_savings / gpt4o_total_cost * 100) if gpt4o_total_cost > 0 else 0
+    
     # Summary Metrics
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric("📊 Total Requests", len(df))
     with col2:
-        st.metric("💵 Total Cost", f"${df['Cost ($)'].sum():.6f}")
+        st.metric("💵 Actual Cost", f"${actual_total_cost:.6f}")
     with col3:
+        st.metric("💰 Without Routing", f"${gpt4o_total_cost:.6f}", 
+                 delta=f"-${total_savings:.6f}", delta_color="inverse")
+    with col4:
+        st.metric("💚 Total Saved", f"${total_savings:.6f}",
+                 delta=f"{savings_pct:.1f}%", delta_color="normal")
+    with col5:
         avg_latency = df['Latency (ms)'].mean()
         st.metric("⚡ Avg Latency", f"{avg_latency:.0f}ms")
-    with col4:
-        total_tokens = df['Tokens'].sum()
-        st.metric("🔢 Total Tokens", f"{total_tokens:,}")
     
     # Charts - Horizontal and Smaller
     st.markdown('''

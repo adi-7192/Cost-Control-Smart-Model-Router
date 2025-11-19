@@ -6,11 +6,13 @@ An intelligent LLM routing system that automatically selects the most cost-effec
 
 - **🧠 Smart Routing**: Automatically classifies prompts and routes to optimal models
 - **💰 Cost Optimization**: Uses cheaper models for simple tasks, expensive ones only when needed
-- **🔌 Multi-Provider Support**: Works with OpenAI (GPT-4o), Google (Gemini), and more
-- **📊 Real-time Analytics**: Track costs, usage, and routing decisions via Streamlit dashboard
+- **� Real-time Savings Comparison**: See exactly how much you save vs using GPT-4o for everything
+- **📈 Scale Projections**: Visualize daily, monthly, and yearly savings at 1000 requests/day
+- **�🔌 Multi-Provider Support**: Works with OpenAI (GPT-4o), Google (Gemini), and more
+- **📊 Real-time Analytics**: Track costs, usage, and cumulative savings via Streamlit dashboard
 - **🎯 Intelligent Classification**: LLM-powered or rule-based prompt analysis
 - **🔄 Auto-Discovery**: Automatically detects and uses best available models
-- **🎨 Modern UI**: Beautiful Streamlit dashboard with dark theme
+- **🎨 Modern UI**: Beautiful Streamlit dashboard with dark theme and gradient cards
 - **🛠️ Extensible**: Easy to add new models and classifiers
 
 ## 🎯 How It Works
@@ -140,8 +142,19 @@ Update API keys programmatically
 
 - **💬 Prompt Testing**: Submit prompts and see real-time routing decisions
 - **📝 Response Display**: View full AI-generated responses
+- **� Cost Savings Comparison**: Beautiful gradient card showing:
+  - What you paid (with smart routing)
+  - What GPT-4o would have cost
+  - Exact savings amount and percentage
+- **�📊 Scale Projections**: See potential savings at 1000 requests/day:
+  - Daily, monthly, and yearly projections
+  - Big picture impact visualization
 - **📊 Metadata**: See model used, cost, latency, and reasoning
-- **📈 Analytics**: Track total costs, model distribution, and difficulty breakdown
+- **📈 Analytics Dashboard**: 
+  - Total requests and actual costs
+  - Cost without routing comparison
+  - **Cumulative savings tracker**
+  - Model and difficulty distribution charts
 - **📋 Recent Logs**: Monitor all routing decisions in a table
 - **⚙️ Settings**: Add/update API keys directly from sidebar
 - **🎨 Modern UI**: Dark theme with horizontal charts and clean layout

@@ -26,8 +26,11 @@ class PromptRequest(BaseModel):
 class RouteResponse(BaseModel):
     model: str
     difficulty: str
-    reasoning: str # New field
+    reasoning: str
     response: str
     cost: float
     tokens: int
     latency_ms: float
+    cost_without_routing: float = 0.0  # What GPT-4o would have cost
+    savings: float = 0.0  # How much was saved
+    savings_percentage: float = 0.0  # Percentage saved

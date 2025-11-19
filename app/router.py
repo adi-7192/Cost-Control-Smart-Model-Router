@@ -52,6 +52,12 @@ class ModelRouter:
         end_time = time.time()
         latency = (end_time - start_time) * 1000
         
+        # Calculate what GPT-4o would have cost (for comparison)
+        # GPT-4o pricing: ~$0.03 per 1K tokens (rough estimate)
+        gpt4o_cost = (tokens / 1000) * 0.03
+        savings = gpt4o_cost - cost
+        savings_percentage = (savings / gpt4o_cost * 100) if gpt4o_cost > 0 else 0
+        
         # 4. Log
         log_entry = RequestLog(
             prompt_preview=prompt[:50],
@@ -73,5 +79,8 @@ class ModelRouter:
             response=response_text,
             cost=cost,
             tokens=tokens,
-            latency_ms=latency
+            latency_ms=latency,
+            cost_without_routing=gpt4o_cost,
+            savings=savings,
+            savings_percentage=savings_percentage
         )
