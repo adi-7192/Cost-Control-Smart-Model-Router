@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic-settings
+requests
+streamlit
+pandas
+# Optional: cmake is needed for pyarrow build on some systems, but usually not a direct dependency for the app logic.
+# We include standard libs.

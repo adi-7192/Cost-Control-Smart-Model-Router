@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost-Control Router Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+
+        .metric {
+            display: inline-block;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .metric span {
+            font-weight: normal;
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🚀 Cost-Control Smart Model Router</h1>
+
+    <div class="container">
+        <h2>⚙️ Settings</h2>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="password" id="openaiKey" placeholder="OpenAI API Key (sk-...)"
+                style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px;">
+            <input type="password" id="googleKey" placeholder="Google API Key (AIza...)"
+                style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px;">
+            <button onclick="saveKeys()" style="background-color: #28a745;">Save Keys</button>
+        </div>
+        <p id="saveStatus" style="margin-top: 5px; font-size: 0.9em;"></p>
+    </div>
+
+    <div class="container">
+        <h2>Try it out</h2>
+        <textarea id="promptInput"
+            placeholder="Enter your prompt here... (e.g., 'What is 2+2?' or 'Explain quantum physics')"></textarea>
+        <button onclick="routePrompt()">Send</button>
+
+        <div id="resultArea" class="result" style="display:none;">
+            <!-- Response Section (Main Focus) -->
+            <div
+                style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 15px;">
+                <h3 style="margin-top: 0; color: #333; font-size: 1.1em;">Response</h3>
+                <div id="resText" style="white-space: pre-wrap; line-height: 1.6; color: #444;"></div>
+            </div>
+
+            <!-- Metadata & Reasoning -->
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 0.9em; color: #666;">
+                <div style="display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <div><strong>Model:</strong> <span id="resModel" style="color: #007bff;"></span></div>
+                    <div><strong>Difficulty:</strong> <span id="resDifficulty"></span></div>
+                    <div><strong>Cost:</strong> <span id="resCost"></span></div>
+                    <div><strong>Latency:</strong> <span id="resLatency"></span></div>
+                </div>
+                <div style="border-top: 1px solid #ddd; padding-top: 8px;">
+                    <strong>Reasoning:</strong> <span id="resReasoning" style="font-style: italic;"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Stats & Recent Logs</h2>
+        <button onclick="fetchStats()">Refresh Stats</button>
+        <div id="statsArea" style="margin-top: 10px;">
+            <div class="metric">Total Requests: <span id="statRequests">-</span></div>
+            <div class="metric">Total Cost: <span id="statCost">-</span></div>
+        </div>
+
+        <h3>Recent Logs</h3>
+        <table id="logsTable">
+            <thead>
+                <tr>
+                    <th>Prompt</th>
+                    <th>Model</th>
+                    <th>Difficulty</th>
+                    <th>Cost</th>
+                    <th>Latency (ms)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Logs go here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        async function saveKeys() {
+            const openaiKey = document.getElementById('openaiKey').value;
+            const googleKey = document.getElementById('googleKey').value;
+
+            if (!openaiKey && !googleKey) return alert("Please enter at least one key");
+
+            const statusEl = document.getElementById('saveStatus');
+            statusEl.innerText = "Saving...";
+            statusEl.style.color = "gray";
+
+            try {
+                const payload = {};
+                if (openaiKey) payload.OPENAI_API_KEY = openaiKey;
+                if (googleKey) payload.GOOGLE_API_KEY = googleKey;
+
+                const response = await fetch(`${API_URL}/config/keys`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusEl.innerText = "✅ " + data.message;
+                    statusEl.style.color = "green";
+                    document.getElementById('openaiKey').value = ""; // Clear input for security
+                } else {
+                    statusEl.innerText = "❌ Error saving key";
+                    statusEl.style.color = "red";
+                }
+            } catch (error) {
+                statusEl.innerText = "❌ Error connecting to backend";
+                statusEl.style.color = "red";
+            }
+        }
+
+        async function routePrompt() {
+            const prompt = document.getElementById('promptInput').value;
+            if (!prompt) return alert("Please enter a prompt");
+
+            const btn = document.querySelector('button');
+            btn.disabled = true;
+            btn.innerText = "Routing...";
+
+            try {
+                const response = await fetch(`${API_URL}/route`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await response.json();
+
+                document.getElementById('resDifficulty').innerText = data.difficulty.toUpperCase();
+                document.getElementById('resModel').innerText = data.model;
+                document.getElementById('resCost').innerText = "$" + data.cost.toFixed(6);
+                document.getElementById('resLatency').innerText = data.latency_ms.toFixed(2) + " ms";
+                document.getElementById('resReasoning').innerText = data.reasoning;
+                document.getElementById('resText').innerText = data.response;
+                document.getElementById('resultArea').style.display = 'block';
+
+                fetchStats(); // Refresh stats
+            } catch (error) {
+                alert("Error connecting to backend: " + error);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Send";
+            }
+        }
+
+        async function fetchStats() {
+            try {
+                // Fetch Stats
+                const statsRes = await fetch(`${API_URL}/stats`);
+                const statsData = await statsRes.json();
+
+                document.getElementById('statRequests').innerText = statsData.total_requests;
+                document.getElementById('statCost').innerText = "$" + statsData.total_cost_usd.toFixed(6);
+
+                // Fetch Logs
+                const logsRes = await fetch(`${API_URL}/logs`);
+                const logsData = await logsRes.json();
+
+                const tbody = document.querySelector('#logsTable tbody');
+                tbody.innerHTML = ''; // Clear existing
+
+                logsData.forEach(log => {
+                    const row = document.createElement('tr');
+                    // Truncate response for table
+                    const shortResponse = log.model_used.includes("Phi") || log.model_used.includes("Llama") || log.model_used.includes("GPT")
+                        ? (log.model_used + " response...")
+                        : "Response...";
+
+                    row.innerHTML = `
+                        <td>${log.prompt_preview}</td>
+                        <td>${log.model_used}</td>
+                        <td>${log.difficulty}</td>
+                        <td>$${log.cost.toFixed(6)}</td>
+                        <td>${log.response_time_ms.toFixed(2)}</td>
+                        <td>${shortResponse}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // Initial load
+        fetchStats();
+    </script>
+</body>
+
+</html>
