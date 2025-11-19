@@ -7,10 +7,10 @@ An intelligent LLM routing system that automatically selects the most cost-effec
 - **🧠 Smart Routing**: Automatically classifies prompts and routes to optimal models
 - **💰 Cost Optimization**: Uses cheaper models for simple tasks, expensive ones only when needed
 - **🔌 Multi-Provider Support**: Works with OpenAI (GPT-4o), Google (Gemini), and more
-- **📊 Real-time Analytics**: Track costs, usage, and routing decisions
+- **📊 Real-time Analytics**: Track costs, usage, and routing decisions via Streamlit dashboard
 - **🎯 Intelligent Classification**: LLM-powered or rule-based prompt analysis
 - **🔄 Auto-Discovery**: Automatically detects and uses best available models
-- **📈 Interactive Dashboard**: Beautiful web UI for testing and monitoring
+- **🎨 Modern UI**: Beautiful Streamlit dashboard with dark theme
 - **🛠️ Extensible**: Easy to add new models and classifiers
 
 ## 🎯 How It Works
@@ -27,7 +27,7 @@ User Prompt → Smart Classifier → Route to Best Model → Return Response
 
 ### Prerequisites
 
-- Python 3.10+ (3.14 not recommended due to some package compatibility)
+- Python 3.10-3.13 (recommended: 3.13)
 - pip
 - (Optional) OpenAI API Key
 - (Optional) Google AI API Key
@@ -42,7 +42,7 @@ User Prompt → Smart Classifier → Route to Best Model → Return Response
 
 2. **Create virtual environment**
    ```bash
-   python -m venv venv
+   python3.13 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
@@ -57,15 +57,19 @@ User Prompt → Smart Classifier → Route to Best Model → Return Response
    # Edit .env and add your API keys (optional for demo)
    ```
 
-5. **Run the server**
+5. **Run the backend server**
    ```bash
    uvicorn app.main:app --reload
    ```
 
-6. **Open the dashboard**
+6. **Run the Streamlit dashboard** (in a new terminal)
+   ```bash
+   streamlit run dashboard.py
    ```
-   Open simple_dashboard.html in your browser
-   ```
+
+7. **Access the application**
+   - Dashboard: http://localhost:8501
+   - API: http://localhost:8000
 
 ## 🔑 Configuration
 
@@ -87,10 +91,11 @@ GOOGLE_API_KEY=your-google-api-key-here
 
 ### Adding API Keys via Dashboard
 
-1. Open `simple_dashboard.html`
-2. Navigate to **Settings** section
-3. Enter your API keys
-4. Click **Save Keys**
+1. Open the Streamlit dashboard at http://localhost:8501
+2. Click **Settings** in the sidebar
+3. Expand **🔑 API Configuration**
+4. Enter your API keys
+5. Click **💾 Save API Keys**
 
 The system will automatically:
 - Detect available models
@@ -125,33 +130,21 @@ Route a prompt to the best model
 ### `GET /stats`
 Get usage statistics
 
-**Response:**
-```json
-{
-  "total_requests": 150,
-  "total_cost_usd": 0.45,
-  "breakdown": {
-    "Phi-3-Mini": {"count": 80, "cost": 0.004},
-    "Gemini 2.5 Flash": {"count": 50, "cost": 0.015},
-    "GPT-4o": {"count": 20, "cost": 0.431}
-  }
-}
-```
-
 ### `GET /logs`
-Get recent request history (last 50)
+Get recent request history (last 100)
 
 ### `POST /config/keys`
 Update API keys programmatically
 
 ## 🎨 Dashboard Features
 
-- **Prompt Testing**: Submit prompts and see real-time routing decisions
-- **Response Display**: View full AI-generated responses
-- **Metadata**: See model used, cost, latency, and reasoning
-- **Analytics**: Track total costs and model distribution
-- **Recent Logs**: Monitor all routing decisions
-- **Settings**: Add/update API keys directly from UI
+- **💬 Prompt Testing**: Submit prompts and see real-time routing decisions
+- **📝 Response Display**: View full AI-generated responses
+- **📊 Metadata**: See model used, cost, latency, and reasoning
+- **📈 Analytics**: Track total costs, model distribution, and difficulty breakdown
+- **📋 Recent Logs**: Monitor all routing decisions in a table
+- **⚙️ Settings**: Add/update API keys directly from sidebar
+- **🎨 Modern UI**: Dark theme with horizontal charts and clean layout
 
 ## 🧩 Extending the System
 
@@ -176,12 +169,7 @@ self.clients = {
 }
 ```
 
-### Adding a Custom Classifier
-
-See `EXTENDING.md` for detailed instructions on:
-- Creating custom classifiers
-- Implementing new routing strategies
-- Adding model providers
+See `EXTENDING.md` for detailed instructions.
 
 ## 📈 Cost Savings Example
 
@@ -223,7 +211,7 @@ python verify.py
 │       ├── providers.py     # Model implementations
 │       ├── factory.py
 │       └── model_discovery.py
-├── simple_dashboard.html    # Web dashboard
+├── dashboard.py             # Streamlit dashboard
 ├── requirements.txt
 ├── .env.example
 └── README.md
@@ -233,25 +221,15 @@ python verify.py
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
+- Built with [FastAPI](https://fastapi.tiangolo.com/) and [Streamlit](https://streamlit.io/)
 - Powered by OpenAI and Google AI
 - Inspired by the need for cost-effective AI solutions
-
-## 📧 Contact
-
-For questions or support, please open an issue on GitHub.
 
 ---
 
