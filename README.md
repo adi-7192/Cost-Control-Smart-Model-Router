@@ -1,6 +1,6 @@
 # 🚀 Cost-Control Smart Model Router
 
-An intelligent LLM routing system that automatically selects the most cost-effective AI model based on prompt complexity, reducing API costs by up to 70% while maintaining response quality.
+An intelligent LLM routing system that automatically selects the most cost-effective AI model based on prompt complexity, reducing API costs by up to 70% while maintaining response quality, so that you dont use the most expensive model to re write your email :) 
 
 ## ✨ Features
 
